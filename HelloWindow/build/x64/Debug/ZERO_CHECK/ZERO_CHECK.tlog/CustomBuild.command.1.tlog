@@ -1,0 +1,10 @@
+^D:\DEV\COMPUTERGRAPHICS\LEARNOPENGL\HELLOWINDOW\BUILD\CMAKEFILES\ABDE533C6CF6A2A5F27F65F0A58263EC\GENERATE.STAMP.RULE
+setlocal
+D:\dev\cpp\CMake3.31.7\bin\cmake.exe -SD:/dev/ComputerGraphics/LearnOpenGL/HelloWindow -BD:/dev/ComputerGraphics/LearnOpenGL/HelloWindow/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file D:/dev/ComputerGraphics/LearnOpenGL/HelloWindow/build/ComputerGraphicsDemo.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

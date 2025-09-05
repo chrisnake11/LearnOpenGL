@@ -1,0 +1,10 @@
+^D:\DEV\COMPUTERGRAPHICS\LEARNOPENGL\HELLOWINDOW\CMAKELISTS.TXT
+setlocal
+D:\dev\cpp\CMake3.31.7\bin\cmake.exe -SD:/dev/ComputerGraphics/LearnOpenGL/HelloWindow -BD:/dev/ComputerGraphics/LearnOpenGL/HelloWindow/build --check-stamp-file D:/dev/ComputerGraphics/LearnOpenGL/HelloWindow/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
