@@ -1,0 +1,47 @@
+build/*
+.vscode/*
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+CTestTestfile.cmake
+install_manifest.txt
+
+# Compiled Object files
+*.o
+*.obj
+*.lo
+*.la
+*.al
+*.libs
+
+# Compiled Dynamic libraries
+*.so
+*.so.*
+*.dll
+*.dylib
+
+# Compiled Static libraries
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+
+# OpenGL/GLFW/GLAD generated files (if any)
+glad.c
+glad.o
+
+# Misc
+*.log
+*.user
+*.swp
+*.swo
+*.tmp
+*.cache
