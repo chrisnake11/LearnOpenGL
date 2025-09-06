@@ -1,46 +1,49 @@
+# 忽略所有子文件夹和根目录下的 build 目录
 **/build/
-**/.vscode/
 build/
+
+# 忽略所有子文件夹和根目录下的 .vscode 目录
+**/.vscode/
 .vscode/
 
-# CMake
+# 忽略所有 CMake 生成的文件和目录
+**/CMakeFiles/
 CMakeFiles/
+**/CMakeCache.txt
 CMakeCache.txt
+**/cmake_install.cmake
 cmake_install.cmake
+**/Makefile
 Makefile
+**/CTestTestfile.cmake
 CTestTestfile.cmake
+**/install_manifest.txt
 install_manifest.txt
 
-# Compiled Object files
+# 忽略所有编译生成的目标文件和库
 *.o
 *.obj
 *.lo
 *.la
 *.al
 *.libs
-
-# Compiled Dynamic libraries
 *.so
 *.so.*
 *.dll
 *.dylib
-
-# Compiled Static libraries
 *.a
 *.lib
-
-# Executables
 *.exe
 *.out
 *.app
 *.i*86
 *.x86_64
 
-# OpenGL/GLFW/GLAD generated files (if any)
+# OpenGL/GLFW/GLAD 生成的文件
 glad.c
 glad.o
 
-# Misc
+# 编辑器和临时文件
 *.log
 *.user
 *.swp
