@@ -1,0 +1,10 @@
+^D:\DEV\COMPUTERGRAPHICS\LEARNOPENGL\HELLOTRIANGLE\BUILD\CMAKEFILES\1271A03A86C4081C6CD582777E2491D5\GENERATE.STAMP.RULE
+setlocal
+D:\dev\cpp\CMake3.31.7\bin\cmake.exe -SD:/dev/ComputerGraphics/LearnOpenGL/HelloTriangle -BD:/dev/ComputerGraphics/LearnOpenGL/HelloTriangle/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file D:/dev/ComputerGraphics/LearnOpenGL/HelloTriangle/build/main.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
