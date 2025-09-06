@@ -5,6 +5,10 @@
 #include <sstream>
 #include <string>
 
+struct Offset{
+    float x;
+    float y;
+};
 
 int main(){
 
@@ -109,16 +113,17 @@ int main(){
     // copy vertices data to buffer's memory
     // 配置顶点属性指针
     glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
     // 拷贝顶点数据到GPU显存
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     // 拷贝顶点索引数据到GPU显存
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    // 将顶点属性与顶点数据关联起来
+    // 将顶点属性与顶点数据关联起来。
+    // 第一个参数指定顶点属性的索引为0。第二个参数指定顶点为vec3，第三个参数指定顶点坐标为float
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    // enable the vertex attribute array
+    // 启用索引为0的顶点属性设置
     glEnableVertexAttribArray(0);
 
     // 顶点属性和顶点数据关联后，可以解绑VBO
@@ -126,18 +131,36 @@ int main(){
     // 后续需要用索引绘制的话，不能解绑EBO
     // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
+    // 全局xy轴的偏移量
+    Offset offset = {0.0f, 0.0f};
     while (!glfwWindowShouldClose(window)) {
+        // listen for events
+        glfwPollEvents();
         // input
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
 
-        // rendering commands here
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // fill the background color after clearing
-        glClear(GL_COLOR_BUFFER_BIT); // GL_COLOR_BUFFER_BIT means clear the color buffer 
+        // 当按下wasd时，累积偏移量
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+            offset.y += 0.001f;
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+            offset.y -= 0.001f;
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+            offset.x -= 0.001f;
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+            offset.x += 0.001f;
+
+        // fill the background color after clearing
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f); 
+        // clear color buffer and depth buffer
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        // use the shader program to render
         glUseProgram(shaderProgram);
-        
+        // 查找名为offset的uniform变量位置
+        int offsetLoc = glGetUniformLocation(shaderProgram, "offset");
+        // 设置offset变量的值
+        glUniform2f(offsetLoc, offset.x, offset.y);
+
         // bind the vertex array object
         glBindVertexArray(VAO);
         
@@ -147,10 +170,6 @@ int main(){
 
         // display framebuffer
         glfwSwapBuffers(window); // swap colors in the back buffer to front buffer
-
-        // listen for events
-        glfwPollEvents();
-
     }
 
     // optional: de-allocate all resources once they've outlived their purpose.
