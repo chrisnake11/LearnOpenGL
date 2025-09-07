@@ -97,10 +97,17 @@ int main(){
         -0.5f,  0.5f, 0.0f   // top left 
     };
     unsigned int indices[] = {  // note that we start from 0!
-        0, 1, 3,   // first triangle
-        1, 2, 3    // second triangle
+        0, 1, 2,   // first triangle
+        0, 3, 2    // second triangle
     };
 
+
+    float colors[] = {
+        1.0f, 0.0f, 0.0f, // red
+        0.0f, 1.0f, 0.0f, // green
+        0.0f, 0.0f, 1.0f, // blue
+        1.0f, 1.0f, 0.0f  // yellow
+    };
 
     /* create and bind the buffer object */
     unsigned int VBO, VAO;
@@ -119,12 +126,22 @@ int main(){
     // 拷贝顶点索引数据到GPU显存
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    // 将顶点属性与顶点数据关联起来。
+    
+    // 将顶点属性与当前的VBO关联起来。
     // 第一个参数指定顶点属性的索引为0。第二个参数指定顶点为vec3，第三个参数指定顶点坐标为float
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    // 启用索引为0的顶点属性设置
+    // 启用属性0
     glEnableVertexAttribArray(0);
+    
+    // 添加颜色属性
+    unsigned int colorVBO;
+    glGenBuffers(1, &colorVBO);
+    // 绑定新的颜色VBO，设置颜色属性
+    glBindBuffer(GL_ARRAY_BUFFER, colorVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
+    // 绑定颜色VBO的属性值到属性1上
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
 
     // 顶点属性和顶点数据关联后，可以解绑VBO
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -133,6 +150,9 @@ int main(){
 
     // 全局xy轴的偏移量
     Offset offset = {0.0f, 0.0f};
+    // 每一帧循环一次，而不是每一秒循环一次
+    // 因为每一帧的时间间隔大约是1/60
+    float step = 1.0f / 800.0f / 60.0f;
     while (!glfwWindowShouldClose(window)) {
         // listen for events
         glfwPollEvents();
@@ -142,18 +162,22 @@ int main(){
 
         // 当按下wasd时，累积偏移量
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-            offset.y += 0.001f;
+            offset.y += step;
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-            offset.y -= 0.001f;
+            offset.y -= step;
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-            offset.x -= 0.001f;
+            offset.x -= step;
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-            offset.x += 0.001f;
+            offset.x += step;
 
         // fill the background color after clearing
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f); 
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f); 
         // clear color buffer and depth buffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // 以线框（不填充）模式绘制多边形
+        // 顺时针为正面，逆时针为背面
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE_LOOP);
         
         glUseProgram(shaderProgram);
         // 查找名为offset的uniform变量位置

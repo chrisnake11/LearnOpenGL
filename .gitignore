@@ -1,10 +1,10 @@
 # 忽略所有子文件夹和根目录下的 build 目录
-**/build/
-build/
+**/build/*
+build/*
 
 # 忽略所有子文件夹和根目录下的 .vscode 目录
-**/.vscode/
-.vscode/
+**/.vscode/*
+.vscode/*
 
 # 忽略所有 CMake 生成的文件和目录
 **/CMakeFiles/
@@ -40,7 +40,7 @@ install_manifest.txt
 *.x86_64
 
 # OpenGL/GLFW/GLAD 生成的文件
-glad.c
+# glad.c
 glad.o
 
 # 编辑器和临时文件
