@@ -13,7 +13,7 @@ void main()
     texel0 = texture(texture1, TexCoord);
     texel1 = texture(texture2, TexCoord);
 
-    result_color = mix(texel0, texel1, texel1.a * 0.2);
+    result_color = mix(texel0, texel1, texel1.a * 0.4);
 
     frag_color = result_color;
 }

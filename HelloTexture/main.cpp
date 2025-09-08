@@ -7,6 +7,9 @@
 #include <string>
 #include "Shader.h"
 #include "stb_image.h"
+#include <gtc/matrix_transform.hpp>
+#include <gtc/type_ptr.hpp>
+#include <cmath>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -152,7 +155,20 @@ int main(){
     setData(ourShader.get(), intAdapter.get(), "texture1", 0);
     setData(ourShader.get(), intAdapter.get(), "texture2", 1);
 
+    
     while(!glfwWindowShouldClose(window)) {
+        float num = (float)fmod(glfwGetTime(), 2.0);
+        float x = 0.5f * (float)(cos(num * 3.1415926f + 3.1415926f / 2.0f));
+        float y = 0.5f * (float)(sin(num * 3.1415926f + 3.1415926f / 2.0f));
+        float rotate_angle = (float)(num * 180.0f * 2.0f); // 1 round in 1 seconds
+        float scale_amount = 0.5f + 0.25f * (float)sin(num * 3.1415926f - 3.1415926f / 2.0f); // scale between 0.5 and 1.0
+        
+        // trans: translate <- rotate <- scale
+        glm::mat4 trans = glm::mat4(1.0f);
+        trans = glm::translate(trans, glm::vec3(x, y, 0.0));
+        trans = glm::rotate(trans, glm::radians(rotate_angle), glm::vec3(0.0, 0.0, 1.0));
+        trans = glm::scale(trans, glm::vec3(scale_amount, scale_amount, 1.0f));
+
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f); 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
@@ -165,6 +181,10 @@ int main(){
 
         ourShader->use();
         glBindVertexArray(VAO);
+
+        unsigned int transformLoc = glGetUniformLocation(ourShader->ID, "transform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+        
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
