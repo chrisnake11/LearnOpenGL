@@ -1,4 +1,5 @@
 #include "Shader.h"
+#include <glm.hpp>
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath)
 {
@@ -84,17 +85,28 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
 void Shader::use() 
 { 
     glUseProgram(ID);
-}  
+}
 
-void Shader::setBool(const std::string &name, bool value) const
-{         
-    glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value); 
+void ShaderDataAdapter<float>::setData(Shader* shader, const std::string &name , const float& value) const{
+    glUniform1f(glGetUniformLocation(shader->ID, name.c_str()), value);
 }
-void Shader::setInt(const std::string &name, int value) const
-{ 
-    glUniform1i(glGetUniformLocation(ID, name.c_str()), value); 
+
+void ShaderDataAdapter<int>::setData(Shader* shader, const std::string &name , const int& value) const{
+    glUniform1i(glGetUniformLocation(shader->ID, name.c_str()), value);
 }
-void Shader::setFloat(const std::string &name, float value) const
-{ 
-    glUniform1f(glGetUniformLocation(ID, name.c_str()), value); 
-} 
+
+void ShaderDataAdapter<bool>::setData(Shader* shader, const std::string &name , const bool& value) const{
+    glUniform1i(glGetUniformLocation(shader->ID, name.c_str()), (int)value);
+}
+
+void ShaderDataAdapter<glm::vec2>::setData(Shader* shader, const std::string &name , const glm::vec2& value) const{
+    glUniform2f(glGetUniformLocation(shader->ID, name.c_str()), value.x, value.y);
+}
+
+void ShaderDataAdapter<glm::vec3>::setData(Shader* shader, const std::string &name , const glm::vec3& value) const{
+    glUniform3f(glGetUniformLocation(shader->ID, name.c_str()), value.x, value.y, value.z);
+}
+
+void ShaderDataAdapter<glm::vec4>::setData(Shader* shader, const std::string &name , const glm::vec4& value) const{
+    glUniform4f(glGetUniformLocation(shader->ID, name.c_str()), value.x, value.y, value.z, value.w);
+}

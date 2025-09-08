@@ -11,6 +11,11 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
+template<typename T>
+void setData(Shader* shader, ShaderDataAdapter<T>* adapter, const std::string &name , const T& value){
+    adapter->setData(shader, name, value);
+}
+
 int main(){
 
     // 初始化GLFW
@@ -43,7 +48,7 @@ int main(){
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
     std::cout << "Maximum nr of vertex attributes supported: " << nrAttributes << std::endl;
 
-    Shader outShader("d:/dev/ComputerGraphics/LearnOpenGL/HelloShader/vs.glsl", 
+    std::unique_ptr<Shader> outShader = std::make_unique<Shader>("d:/dev/ComputerGraphics/LearnOpenGL/HelloShader/vs.glsl", 
                      "d:/dev/ComputerGraphics/LearnOpenGL/HelloShader/fs.glsl");
 
     // vertex data, mix position and color attributes
@@ -79,9 +84,12 @@ int main(){
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f); 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        outShader.use();
-        outShader.setFloat("greenValue", (sin(glfwGetTime()) / 2.0f) + 0.5f);
-        
+        outShader->use();
+
+        std::unique_ptr<ShaderDataAdapter<float>> floatAdapter = std::make_unique<ShaderDataAdapter<float>>();
+        float greenValue = (sin(glfwGetTime()) / 2.0f) + 0.5f;
+        setData(outShader.get(), floatAdapter.get(), "greenValue", greenValue);
+
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
