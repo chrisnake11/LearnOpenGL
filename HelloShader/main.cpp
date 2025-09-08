@@ -11,11 +11,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-template<typename T>
-void setData(Shader* shader, ShaderDataAdapter<T>* adapter, const std::string &name , const T& value){
-    adapter->setData(shader, name, value);
-}
-
 int main(){
 
     // 初始化GLFW
