@@ -10,6 +10,7 @@
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
 #include <cmath>
+#include <vector>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -48,27 +49,69 @@ int main(){
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
     std::cout << "Maximum nr of vertex attributes supported: " << nrAttributes << std::endl;
 
-    const char* vertexShaderPath = "D:/dev/ComputerGraphics/LearnOpenGL/HelloTexture/vs.glsl";
-    const char* fragmentShaderPath = "D:/dev/ComputerGraphics/LearnOpenGL/HelloTexture/fs.glsl";
+    const char* vertexShaderPath = "D:/dev/ComputerGraphics/LearnOpenGL/Hello3DSpace/vs.glsl";
+    const char* fragmentShaderPath = "D:/dev/ComputerGraphics/LearnOpenGL/Hello3DSpace/fs.glsl";
     std::unique_ptr<Shader> ourShader = std::make_unique<Shader>(vertexShaderPath, fragmentShaderPath);
 
+    // single cube vertices with texture coordinates
     float vertices[] = {
-        // positions         // texture coords
-         0.5f,  0.5f, 0.0f,  1.0f, 1.0f,  // top right
-         0.5f, -0.5f, 0.0f,  1.0f, 0.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f,  0.0f, 0.0f,  // bottom left
-        -0.5f,  0.5f, 0.0f,  0.0f, 1.0f   // top left
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+        0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
 
-    unsigned int indices[] = {
-        0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
-    };
+    
+    // 3 * 3 * 3 cubes
+    std::vector<glm::vec3> cubePositions;
+    for(int z = -2; z <= 2; z += 2){
+        for(int y = -2; y <= 2; y += 2){
+            for(int x = -2; x <= 2; x += 2){
+                cubePositions.push_back(glm::vec3((float)x, (float)y, (float)z));
+            }
+        }
+    }
 
     unsigned int VBO, VAO, EBO;
     glGenBuffers(1, &VBO);
     glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &EBO);
 
     // 绑定VAO，后续的VBO和属性配置都绑定到这个VAO上
     glBindVertexArray(VAO);
@@ -76,9 +119,6 @@ int main(){
     // 绑定VBO到状态机，并拷贝数据到GPU显存
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // 第一个属性，每次间隔5个floats，偏移量为0
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
@@ -105,7 +145,7 @@ int main(){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
     int width, height, nrChannels;
-    const char* avatarPath = "D:/dev/ComputerGraphics/LearnOpenGL/HelloTexture/avatar.png";
+    const char* avatarPath = "D:/dev/ComputerGraphics/LearnOpenGL/Hello3DSpace/avatar.png";
     // load avatar.png information
     // flip the image vertically. opengl 0.0 y coordinate is at the bottom of the image, but images usually have 0.0 at the top of the image
     stbi_set_flip_vertically_on_load(true);
@@ -136,7 +176,7 @@ int main(){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
-    const char* awesomefacePath = "D:/dev/ComputerGraphics/LearnOpenGL/HelloTexture/awesomeface.png";
+    const char* awesomefacePath = "D:/dev/ComputerGraphics/LearnOpenGL/Hello3DSpace/awesomeface.png";
     unsigned char *face_data = stbi_load(awesomefacePath, &width, &height, &nrChannels, 0);
     
     std::cout << "awesomeface.png path: " << awesomefacePath << std::endl;
@@ -155,21 +195,31 @@ int main(){
     setData(ourShader.get(), intAdapter.get(), "texture1", 0);
     setData(ourShader.get(), intAdapter.get(), "texture2", 1);
 
-    
-    while(!glfwWindowShouldClose(window)) {
-        float num = (float)glfwGetTime();
-        float x = 0.5f * (float)(cos(num * 3.1415926f + 3.1415926f / 2.0f));
-        float y = 0.5f * (float)(sin(num * 3.1415926f + 3.1415926f / 2.0f));
-        float rotate_angle = (float)(num * 180.0f * 2.0f); // 1 round in 1 seconds
-        float scale_amount = 0.5f + 0.25f * (float)sin(num * 3.1415926f - 3.1415926f / 2.0f); // scale between 0.5 and 1.0
-        
-        // trans: translate <- rotate <- scale
-        glm::mat4 trans = glm::mat4(1.0f);
-        trans = glm::translate(trans, glm::vec3(x, y, 0.0));
-        trans = glm::rotate(trans, glm::radians(rotate_angle), glm::vec3(0.0, 0.0, 1.0));
-        trans = glm::scale(trans, glm::vec3(scale_amount, scale_amount, 1.0f));
+    glEnable(GL_DEPTH_TEST); 
 
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f); 
+    while(!glfwWindowShouldClose(window)) {
+        // rotate by x axis
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+
+        const float radius = 10.0f;
+        float camX = sin((float)glfwGetTime()) * radius;
+        float camZ = cos((float)glfwGetTime()) * radius;
+        // x-z plane circle
+        glm::vec3 cameraPos = glm::vec3(camX, 0.0f, camZ);
+        glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+        glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+        glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, cameraUp);
+
+        // perspective projection
+        glm::mat4 projection = glm::mat4(1.0f);
+        // fov, aspect ratio, near plane, far plane
+        projection = glm::perspective(glm::radians(90.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+
+        
+        float timeValue = (float)glfwGetTime();
+        float pi = 3.14159265358979323846f;
+        glClearColor(sin(timeValue * pi), sin(timeValue * pi + (pi / 2)), sin(timeValue * pi + pi), 0.8f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         // 添加一个纹理单元到状态机，并绑定纹理
@@ -182,10 +232,25 @@ int main(){
         ourShader->use();
         glBindVertexArray(VAO);
 
-        unsigned int transformLoc = glGetUniformLocation(ourShader->ID, "transform");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+        // pass transformation matrices to the shader
+        unsigned int modelLoc = glGetUniformLocation(ourShader->ID, "model");
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        unsigned int viewLoc = glGetUniformLocation(ourShader->ID, "view");
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        unsigned int projectionLoc = glGetUniformLocation(ourShader->ID, "projection");
+        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
         
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        // draw the rectangle
+
+        for (int i = 0; i < cubePositions.size(); i++)
+        {
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, cubePositions[i]);
+            float angle = 20.0f;
+            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f) + glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
