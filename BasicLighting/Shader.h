@@ -6,6 +6,14 @@
 #include <sstream>
 #include <iostream>
 #include <string>
+
+struct Material{
+    glm::vec3 ambient;
+    glm::vec3 diffuse;
+    glm::vec3 specular;
+    float shininess;
+};
+
 class Shader{
 public:
     unsigned int ID;
@@ -60,6 +68,12 @@ class ShaderDataAdapter<glm::mat4>{
 public:
     void setData(Shader* shader, const std::string &name , const glm::mat4& value) const;
 };
+
+template<>
+class ShaderDataAdapter<Material>{
+public:
+    void setData(Shader* shader, const std::string &name , const Material& value) const;
+};  
 
 template<typename T>
 void setData(Shader* shader, ShaderDataAdapter<T>* adapter, const std::string &name , const T& value){

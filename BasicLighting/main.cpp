@@ -13,7 +13,7 @@ void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 const int SCR_WIDTH = 800;
 const int SCR_HEIGHT = 600;
 
-Camera camera(glm::vec3(0.5f, 1.0f, 2.0f), glm::vec3(0.0f, 1.0f, 0.0f), -100.0f, -15.0f); // initial position
+Camera camera{glm::vec3(0.5f, 1.0f, 2.0f), glm::vec3(0.0f, 1.0f, 0.0f), -100.0f, -15.0f}; // initial position
 
 // cursor in center initially
 float lastX = SCR_WIDTH / 2.0f;
@@ -25,10 +25,21 @@ glm::vec3 lightPos = glm::vec3(-1.0f, 1.3f, -3.0f);
 // ambient lighting parameters
 float ambientLightIntensity = 0.1f;
 
+Material material = {
+    glm::vec3( 0.0215f,   0.1745f, 0.0215f), 
+    glm::vec3(0.07568f,  0.61424f, 0.07568f),
+    glm::vec3(  0.633f, 0.727811f, 0.633f),
+    5.0f
+    };
+
+glm::vec3 objectColor{0.0f, 0.8f, 0.2f};
+glm::vec3 lightColor{1.0f, 1.0f, 1.0f};
+
 ShaderDataAdapter<float> shaderFloatDataAdapter;
 ShaderDataAdapter<glm::vec2> shaderVec2DataAdapter;
 ShaderDataAdapter<glm::vec3> shaderVec3DataAdapter;
 ShaderDataAdapter<glm::mat4> shaderMat4DataAdapter;
+ShaderDataAdapter<Material> shaderMaterialDataAdapter;
 
 float deltaTime = 0.0f; // time between current frame and last frame
 float lastFrame = 0.0f;
@@ -153,8 +164,8 @@ int main(){
         // lightPos = glm::vec3(1.0f * sin(glfwGetTime()), 0.5f, 3.0f * cos(glfwGetTime()));
 
         colorShader->use();
-        setData(colorShader.get(), &shaderVec3DataAdapter, "objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
-        setData(colorShader.get(), &shaderVec3DataAdapter, "lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+        setData(colorShader.get(), &shaderVec3DataAdapter, "objectColor", objectColor);
+        setData(colorShader.get(), &shaderVec3DataAdapter, "lightColor", lightColor);
         setData(colorShader.get(), &shaderVec3DataAdapter, "lightPos", lightPos);
         setData(colorShader.get(), &shaderVec3DataAdapter, "viewPos", camera.Position);
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -163,6 +174,8 @@ int main(){
         setData(colorShader.get(), &shaderMat4DataAdapter, "view", view);
         glm::mat4 model = glm::mat4(1.0f);
         setData(colorShader.get(), &shaderMat4DataAdapter, "model", model);
+
+        setData(colorShader.get(), &shaderMaterialDataAdapter, "material", material);
 
         glBindVertexArray(cubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);

@@ -114,3 +114,10 @@ void ShaderDataAdapter<glm::vec4>::setData(Shader* shader, const std::string &na
 void ShaderDataAdapter<glm::mat4>::setData(Shader* shader, const std::string &name , const glm::mat4& value) const{
     glUniformMatrix4fv(glGetUniformLocation(shader->ID, name.c_str()), 1, GL_FALSE, &value[0][0]);
 }
+
+void ShaderDataAdapter<Material>::setData(Shader* shader, const std::string &name , const Material& value) const{
+    glUniform3f(glGetUniformLocation(shader->ID, (name + ".ambient").c_str()), value.ambient.r, value.ambient.g, value.ambient.b);
+    glUniform3f(glGetUniformLocation(shader->ID, (name + ".diffuse").c_str()), value.diffuse.r, value.diffuse.g, value.diffuse.b);
+    glUniform3f(glGetUniformLocation(shader->ID, (name + ".specular").c_str()), value.specular.r, value.specular.g, value.specular.b);
+    glUniform1f(glGetUniformLocation(shader->ID, (name + ".shininess").c_str()), value.shininess);
+}

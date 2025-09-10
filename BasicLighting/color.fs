@@ -1,5 +1,14 @@
 #version 460 core
 
+struct Material {
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    float shininess;
+}; 
+
+uniform Material material;
+
 in vec3 Normal;
 in vec3 FragPos;
 
@@ -23,10 +32,10 @@ void main()
     
     // Blinn-Phong specular
     vec3 halfwayDir = normalize(lightDir + viewDir);
-    float spec = pow(max(dot(norm, halfwayDir), 0.0), 32.0); // shininess = 32
+    float spec = pow(max(dot(norm, halfwayDir), 0.0), material.shininess);
 
     // combine results
-    vec3 result = (ambientStrength + diff + 0.5 * spec) * lightColor * objectColor;
+    vec3 result = (material.ambient + diff * material.diffuse + spec * material.specular) * lightColor * objectColor;
     frag_color = vec4(result, 1.0);
 
 }
