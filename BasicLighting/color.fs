@@ -23,8 +23,8 @@ void main()
     
     // Blinn-Phong specular
     vec3 halfwayDir = normalize(lightDir + viewDir);
-    float spec = pow(max(dot(norm, halfwayDir), 0.0), 128.0); // shininess = 128
-    
+    float spec = pow(max(dot(norm, halfwayDir), 0.0), 32.0); // shininess = 32
+
     // combine results
     vec3 result = (ambientStrength + diff + 0.5 * spec) * lightColor * objectColor;
     frag_color = vec4(result, 1.0);

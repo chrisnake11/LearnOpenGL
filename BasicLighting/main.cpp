@@ -13,14 +13,14 @@ void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 const int SCR_WIDTH = 800;
 const int SCR_HEIGHT = 600;
 
-Camera camera(glm::vec3(1.0f, 1.0f, 3.0f), glm::vec3(0.0f, 1.0f, 0.0f), -100.0f, -20.0f); // initial position
+Camera camera(glm::vec3(0.5f, 1.0f, 2.0f), glm::vec3(0.0f, 1.0f, 0.0f), -100.0f, -15.0f); // initial position
 
 // cursor in center initially
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
-glm::vec3 lightPos = glm::vec3(1.0f, 0.5f, -5.0f);
+glm::vec3 lightPos = glm::vec3(-1.0f, 1.3f, -3.0f);
 
 // ambient lighting parameters
 float ambientLightIntensity = 0.1f;
@@ -150,33 +150,32 @@ int main(){
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // lightPos = glm::vec3(1.0f * sin(glfwGetTime()), 0.5f, 3.0f * cos(glfwGetTime()));
+
         colorShader->use();
         setData(colorShader.get(), &shaderVec3DataAdapter, "objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
         setData(colorShader.get(), &shaderVec3DataAdapter, "lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-        setData(colorShader.get(), &shaderFloatDataAdapter, "ambientStrength", ambientLightIntensity);
         setData(colorShader.get(), &shaderVec3DataAdapter, "lightPos", lightPos);
         setData(colorShader.get(), &shaderVec3DataAdapter, "viewPos", camera.Position);
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         setData(colorShader.get(), &shaderMat4DataAdapter, "projection", projection);
-        
         glm::mat4 view = camera.GetViewMatrix();
         setData(colorShader.get(), &shaderMat4DataAdapter, "view", view);
-
         glm::mat4 model = glm::mat4(1.0f);
         setData(colorShader.get(), &shaderMat4DataAdapter, "model", model);
+
         glBindVertexArray(cubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         lightShader->use();
         setData(lightShader.get(), &shaderMat4DataAdapter, "projection", projection);
         setData(lightShader.get(), &shaderMat4DataAdapter, "view", view);
-        
-        lightPos = glm::vec3(1.0f * sin(glfwGetTime()), 0.5f, 3.0f * cos(glfwGetTime()));
         model = glm::mat4(1.0f);
         model = translate(model, lightPos);
         model = scale(model, glm::vec3(0.1f)); // a smaller cube
         setData(lightShader.get(), &shaderMat4DataAdapter, "model", model);
         setData(lightShader.get(), &shaderVec3DataAdapter, "lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+
         glBindVertexArray(cubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
