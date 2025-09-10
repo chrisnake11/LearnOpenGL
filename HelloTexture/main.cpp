@@ -90,7 +90,6 @@ int main(){
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-
     // gen texture vertices and bind to state machine
     unsigned int texture_container;
     glGenTextures(1, &texture_container);
