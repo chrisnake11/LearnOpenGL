@@ -5,6 +5,7 @@
 #include "stb_image.h"
 #include "Camera.h"
 #include "Shader.h"
+#include <memory>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void inputProcess(GLFWwindow* window);
@@ -26,13 +27,6 @@ glm::vec3 lightPos = glm::vec3(-1.0f, 1.3f, -2.0f);
 
 // ambient lighting parameters
 float ambientLightIntensity = 0.1f;
-
-ShaderDataAdapter<int> shaderIntDataAdapter;
-ShaderDataAdapter<float> shaderFloatDataAdapter;
-ShaderDataAdapter<glm::vec2> shaderVec2DataAdapter;
-ShaderDataAdapter<glm::vec3> shaderVec3DataAdapter;
-ShaderDataAdapter<glm::mat4> shaderMat4DataAdapter;
-ShaderDataAdapter<Material> shaderMaterialDataAdapter;
 
 float deltaTime = 0.0f; // time between current frame and last frame
 float lastFrame = 0.0f;
@@ -111,6 +105,7 @@ int main(){
 };
 
     // load shader
+    //
     const char* colorVertexPath = "./color.vs";
     const char* colorFragmentPath = "./color.fs";
     std::unique_ptr<Shader> colorShader = std::make_unique<Shader>(colorVertexPath, colorFragmentPath);
@@ -149,9 +144,9 @@ int main(){
     unsigned int emissionMap = loadTexture("./matrix.jpg");
 
     colorShader->use();
-    setData(colorShader.get(), &shaderIntDataAdapter, "material.diffuse", 0);
-    setData(colorShader.get(), &shaderIntDataAdapter, "material.specular", 1);
-    setData(colorShader.get(), &shaderIntDataAdapter, "material.emission", 2);
+    colorShader->setInt("material.diffuse", 0);
+    colorShader->setInt("material.specular", 1);
+    colorShader->setInt("material.emission", 2);
 
     glEnable(GL_DEPTH_TEST);
     
@@ -170,21 +165,19 @@ int main(){
 
         colorShader->use();
         // set light properties
-        // 从摄像机发出光。
-        // setData(colorShader.get(), &shaderVec3DataAdapter, "light.position", camera.Position);
-        setData(colorShader.get(), &shaderVec3DataAdapter, "light.position", lightPos);
-        setData(colorShader.get(), &shaderVec3DataAdapter, "light.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
-        setData(colorShader.get(), &shaderVec3DataAdapter, "light.diffuse", glm::vec3(1.0f));
-        setData(colorShader.get(), &shaderVec3DataAdapter, "light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+        colorShader->setVec3("light.position", lightPos);
+        colorShader->setVec3("light.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
+        colorShader->setVec3("light.diffuse", glm::vec3(1.0f));
+        colorShader->setVec3("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
 
-        setData(colorShader.get(), &shaderVec3DataAdapter, "viewPos", camera.Position);
+        colorShader->setVec3("viewPos", camera.Position);
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        setData(colorShader.get(), &shaderMat4DataAdapter, "projection", projection);
+        colorShader->setMat4("projection", projection);
         glm::mat4 view = camera.GetViewMatrix();
-        setData(colorShader.get(), &shaderMat4DataAdapter, "view", view);
+        colorShader->setMat4("view", view);
         glm::mat4 model = glm::mat4(1.0f);
-        setData(colorShader.get(), &shaderMat4DataAdapter, "model", model);
-        setData(colorShader.get(), &shaderFloatDataAdapter, "material.shininess", 32.0f);
+        colorShader->setMat4("model", model);
+        colorShader->setFloat("material.shininess", 32.0f);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
@@ -197,13 +190,13 @@ int main(){
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         lightShader->use();
-        setData(lightShader.get(), &shaderMat4DataAdapter, "projection", projection);
-        setData(lightShader.get(), &shaderMat4DataAdapter, "view", view);
+        lightShader->setMat4("projection", projection);
+        lightShader->setMat4("view", view);
         model = glm::mat4(1.0f);
         model = translate(model, lightPos);
         model = scale(model, glm::vec3(0.1f)); // a smaller cube
-        setData(lightShader.get(), &shaderMat4DataAdapter, "model", model);
-        setData(lightShader.get(), &shaderVec3DataAdapter, "lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+        lightShader->setMat4("model", model);
+        lightShader->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
 
         glBindVertexArray(cubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);

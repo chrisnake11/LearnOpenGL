@@ -23,13 +23,21 @@ else()
     target_link_libraries(main PRIVATE OpenGL::GL)
 endif()
 
-# move *.fs and *.vs files to the build directory
-file(GLOB SHADER_FILES "*.vs" "*.fs")
-foreach(SHADER_FILE ${SHADER_FILES})
-    configure_file(${SHADER_FILE} ${CMAKE_CURRENT_BINARY_DIR}/ COPYONLY)
-endforeach()
+# 收集着色器与纹理(根据你的实际目录调整)
+file(GLOB SHADER_FILES
+        "${CMAKE_SOURCE_DIR}/shaders/*.vs"
+        "${CMAKE_SOURCE_DIR}/shaders/*.fs"
+)
+file(GLOB IMAGE_FILES
+        "${CMAKE_SOURCE_DIR}/resources/*.png"
+        "${CMAKE_SOURCE_DIR}/resources/*.jpg"
+        "${CMAKE_SOURCE_DIR}/resources/*.jpeg"
+)
 
-file(GLOB IMAGE_FILES "*.png" "*.jpg" "*.jpeg")
-foreach(IMAGE_FILE ${IMAGE_FILES})
-    configure_file(${IMAGE_FILE} ${CMAKE_CURRENT_BINARY_DIR}/ COPYONLY)
-endforeach()
+# 构建后复制到可执行文件所在配置目录 (Debug / Release)
+add_custom_command(TARGET main POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E echo "Copy assets to: $<TARGET_FILE_DIR:main>"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SHADER_FILES} $<TARGET_FILE_DIR:main>
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${IMAGE_FILES}  $<TARGET_FILE_DIR:main>
+        VERBATIM
+)
