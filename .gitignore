@@ -53,3 +53,6 @@ glad.o
 *.swo
 *.tmp
 *.cache
+
+# 不忽略所有子目录下的./reources文件的内容
+!**/resources/**
