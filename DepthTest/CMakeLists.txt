@@ -11,12 +11,9 @@ include_directories("${GLFW_DIR}/include" "${GLM_DIR}" "${ASSIMP_DIR}/include")
 link_directories("${GLFW_DIR}/lib" "${ASSIMP_DIR}/lib")
 
 add_executable(main main.cpp
-        Model.cpp
-        Mesh.cpp
         Shader.cpp
         Camera.cpp
         glad.c
-        ../DepthTest/main.cpp
 )
 
 target_include_directories(main PRIVATE "${GLFW_DIR}/include" "${GLM_DIR}" "${ASSIMP_DIR}/include")
@@ -34,19 +31,15 @@ endif()
 
 # 收集着色器与纹理(根据你的实际目录调整)
 file(GLOB SHADER_FILES
-        "${CMAKE_SOURCE_DIR}/shaders/*.vs"
-        "${CMAKE_SOURCE_DIR}/shaders/*.fs"
+        "${CMAKE_SOURCE_DIR}/shaders/*"
 )
-file(GLOB IMAGE_FILES
-        "${CMAKE_SOURCE_DIR}/resources/*.png"
-        "${CMAKE_SOURCE_DIR}/resources/*.jpg"
-        "${CMAKE_SOURCE_DIR}/resources/*.jpeg"
+file(GLOB_RECURSE RESOURCE_FILES
+        "${CMAKE_SOURCE_DIR}/resources/*"
 )
-
 # 构建后复制到可执行文件所在配置目录 (Debug / Release)
 add_custom_command(TARGET main POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E echo "Copy assets to: $<TARGET_FILE_DIR:main>"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SHADER_FILES} $<TARGET_FILE_DIR:main>
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${IMAGE_FILES}  $<TARGET_FILE_DIR:main>
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${RESOURCE_FILES}  $<TARGET_FILE_DIR:main>
         VERBATIM
 )
