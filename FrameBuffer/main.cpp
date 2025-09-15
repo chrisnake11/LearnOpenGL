@@ -1,5 +1,4 @@
 #define STB_IMAGE_IMPLEMENTATION
-#include <algorithm>
 #include <glad/glad.h>
 #include <glfw/glfw3.h>
 #include <iostream>
@@ -36,10 +35,10 @@ int main(){
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    Shader shader("./depthTest.vs", "./framebuffer.fs");
+    Shader shader("./framebuffer.vs", "./framebuffer.fs");
+    Shader screenShader("./screenShader.vs", "./screenShader.fs");
+    Shader windowShader("./screenShader.vs", "./windowShader.fs");
 
     float cubeVertices[] = {
         // positions          // texture Coords
@@ -96,6 +95,26 @@ int main(){
          5.0f, -0.501f, -5.0f,  2.0f, 2.0f
     };
 
+    float windowVertices[] = {
+        -1.0f, -1.0f, 0.0f, 0.0f,
+         1.0f, -1.0f, 1.0f, 0.0f,
+         1.0f,  1.0f, 1.0f, 1.0f,
+
+         1.0f,  1.0f, 1.0f, 1.0f,
+        -1.0f,  1.0f, 0.0f, 1.0f,
+        -1.0f, -1.0f, 0.0f, 0.0f
+    };
+
+    float miniWindowVertices[] = {
+        0.5f, -0.25f, 0.0f, 0.0f,
+        0.5f, 0.25f, 0.0f, 1.0f,
+        1.0f, -0.25f, 1.0f, 0.0f,
+
+        1.0f, 0.25f, 1.0f, 1.0f,
+        1.0f, -0.25f, 1.0f, 0.0f,
+        0.5f, 0.25f, 0.0f, 1.0f,
+    };
+
     // cube VAO
     unsigned int cubeVAO, cubeVBO;
     glGenVertexArrays(1, &cubeVAO);
@@ -108,7 +127,6 @@ int main(){
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glBindVertexArray(0);
-
     // plane VAO
     unsigned int planeVAO, planeVBO;
     glGenVertexArrays(1, &planeVAO);
@@ -122,12 +140,77 @@ int main(){
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glBindVertexArray(0);
 
-    stbi_set_flip_vertically_on_load(false);
+    unsigned int windowVAO, windowVBO;
+    glGenVertexArrays(1, &windowVAO);
+    glGenBuffers(1, &windowVBO);
+    glBindVertexArray(windowVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, windowVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(windowVertices), &windowVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)nullptr);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+    unsigned int minVAO, minVBO;
+    glGenVertexArrays(1, &minVAO);
+    glGenBuffers(1, &minVBO);
+    glBindVertexArray(minVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, minVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(miniWindowVertices), &miniWindowVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)nullptr);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
     unsigned int cubeTexture = loadTexture("./marble.jpg");
     unsigned int floorTexture = loadTexture("./metal.png");
 
     shader.use();
     shader.setInt("texture1", 0);
+
+    windowShader.use();
+    windowShader.setInt("screenTexture", 0);
+
+    screenShader.use();
+    screenShader.setInt("screenTexture", 0);
+
+    unsigned int fbo;
+    glGenFramebuffers(1, &fbo);
+    // GL_READ_FRAMEBUFFER or GL_DRAW_FRAMEBUFFER
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+    unsigned int textureColorbuffer;
+    glGenTextures(1, &textureColorbuffer);
+    glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB,
+        GL_UNSIGNED_BYTE, nullptr);
+
+    // pname表示对应的参数
+    // min_filter表示纹理被缩小时，采用nearest的方式进行采样。
+    // mag_filter表示纹理放大时，我们也使用了nearest的方式采样。
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    // bind @texture to framebuffer's color attachment
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+
+    /*
+     * 当纹理内容不需要进行采样（纹理不需要放大或者缩小）时，
+     * 使用Renderbuffer更加合适，Renderbuffer中只
+     */
+    unsigned int rbo;
+    glGenRenderbuffers(1, &rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    // create depth and stencil buffer object
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
+    // add Renderbuffer to Framebuffer
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "ERROR:FRAMEBUFFER NOT COMPLETE" << std::endl;
+
+    // free framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     while (!glfwWindowShouldClose(window)){
         const auto currentTime = static_cast<float>(glfwGetTime());
@@ -136,9 +219,16 @@ int main(){
 
         inputProcess(window);
 
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+        // 将状态机切换到当前的framebuffer object
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_DEPTH_TEST);
+
+        // draw cube and floor
         shader.use();
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 view = camera.GetViewMatrix();
@@ -161,7 +251,40 @@ int main(){
         glBindTexture(GL_TEXTURE_2D, floorTexture);
         shader.setMat4("model", glm::mat4(1.0f));
         glDrawArrays(GL_TRIANGLES, 0, 6);
-        glBindVertexArray(0);
+
+        // 将状态机切换到默认的framebuffer中
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_DEPTH_TEST);
+        // draw cube and floor
+        shader.setMat4("view", view);
+        shader.setMat4("projection", projection);
+        // cubes
+        glBindVertexArray(cubeVAO);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, cubeTexture);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
+        shader.setMat4("model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
+        shader.setMat4("model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        // floor
+        glBindVertexArray(planeVAO);
+        glBindTexture(GL_TEXTURE_2D, floorTexture);
+        shader.setMat4("model", glm::mat4(1.0f));
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+
+        // draw mirror screen from framebuffer
+        glDisable(GL_DEPTH_TEST);
+        screenShader.use();
+        glBindVertexArray(minVAO);
+        glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -254,6 +377,7 @@ unsigned int loadTexture(const char *path) {
     unsigned int textureID;
     glGenTextures(1, &textureID);
 
+    stbi_set_flip_vertically_on_load(true);
     int width, height, nrComponents;
     unsigned char *data = nullptr;
     data = stbi_load(path, &width, &height, &nrComponents, 0);
