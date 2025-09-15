@@ -38,7 +38,6 @@ int main(){
 
     Shader shader("./framebuffer.vs", "./framebuffer.fs");
     Shader screenShader("./screenShader.vs", "./screenShader.fs");
-    Shader windowShader("./screenShader.vs", "./windowShader.fs");
 
     float cubeVertices[] = {
         // positions          // texture Coords
@@ -95,16 +94,6 @@ int main(){
          5.0f, -0.501f, -5.0f,  2.0f, 2.0f
     };
 
-    float windowVertices[] = {
-        -1.0f, -1.0f, 0.0f, 0.0f,
-         1.0f, -1.0f, 1.0f, 0.0f,
-         1.0f,  1.0f, 1.0f, 1.0f,
-
-         1.0f,  1.0f, 1.0f, 1.0f,
-        -1.0f,  1.0f, 0.0f, 1.0f,
-        -1.0f, -1.0f, 0.0f, 0.0f
-    };
-
     float miniWindowVertices[] = {
         0.5f, -0.25f, 0.0f, 0.0f,
         0.5f, 0.25f, 0.0f, 1.0f,
@@ -140,17 +129,6 @@ int main(){
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glBindVertexArray(0);
 
-    unsigned int windowVAO, windowVBO;
-    glGenVertexArrays(1, &windowVAO);
-    glGenBuffers(1, &windowVBO);
-    glBindVertexArray(windowVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, windowVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(windowVertices), &windowVertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)nullptr);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-
     unsigned int minVAO, minVBO;
     glGenVertexArrays(1, &minVAO);
     glGenBuffers(1, &minVBO);
@@ -167,9 +145,6 @@ int main(){
 
     shader.use();
     shader.setInt("texture1", 0);
-
-    windowShader.use();
-    windowShader.setInt("screenTexture", 0);
 
     screenShader.use();
     screenShader.setInt("screenTexture", 0);
