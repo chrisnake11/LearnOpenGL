@@ -24,6 +24,7 @@ void Model::draw(const Shader &shader) const {
 void Model::loadModel(const std::string &path) {
     // call import to read the model file
     Assimp::Importer importer;
+    // flags: triangulate the model, flip the texture coordinates on y-axis
     const aiScene * scene = nullptr;
     scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
@@ -100,15 +101,19 @@ Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
     // diffuse maps
     std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
     textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-    // specular maps
-    std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
-    textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
-    std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
-    textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+    std::vector<Texture> reflectionMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_reflection");
+    textures.insert(textures.end(), reflectionMaps.begin(), reflectionMaps.end());
 
-    std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
-    textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+    // std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+    // textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+    //
+    // std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
+    // textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+    //
+    // std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
+    // textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+
 
     return Mesh{vertices, indices, textures};
 }
@@ -149,7 +154,6 @@ unsigned int TextureFromFile(const char* path, const std::string& directory, boo
 
     int width{}, height{}, nrComponents{};
     // flip the texture on y-axis
-    stbi_set_flip_vertically_on_load(true);
     unsigned char* data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
     if (!data) {
         std::cout << "ERROR: stbi_load failed: " << path << " reason=" << stbi_failure_reason() << std::endl;
