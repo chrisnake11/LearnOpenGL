@@ -4,6 +4,7 @@
 
 #include "Mesh.h"
 #include <glad/glad.h>
+#include <iostream>
 
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures) :
     m_vertices(std::move(vertices)), m_indices(std::move(indices)), m_textures(std::move(textures)) {
@@ -36,31 +37,35 @@ void Mesh::setupMesh() {
 void Mesh::draw(const Shader &shader) const {
     unsigned int diffuseNr = 1;
     unsigned int reflectionNr = 1;
-    // unsigned int specularNr = 1;
-    // unsigned int normalNr = 1;
-    // unsigned int heightNr = 1;
+    unsigned int specularNr = 1;
+    unsigned int normalNr = 1;
+    unsigned int heightNr = 1;
     for(unsigned int i = 0; i < m_textures.size(); i++) {
         glActiveTexture(GL_TEXTURE0 + i); // active proper texture unit before binding
         // retrieve texture number (the N in diffuse_textureN)
-        std::string number{};
         std::string name = m_textures[i].type;
-        if(name == "texture_diffuse")
-            number = std::to_string(diffuseNr++);
-        else if (name == "texture_reflection")
-            number = std::to_string(reflectionNr++); // only one reflection map
-        // else if (name == "texture_specular")
-        //     number = std::to_string(specularNr++);
-        // else if (name == "texture_normal")
-        //     number = std::to_string(normalNr++);
-        // else if (name == "texture_height")
-        //     number = std::to_string(heightNr++);
-        // now set the sampler to the correct texture unit
-        name += number;
-        // set uniform sampler to correct texture unit
-        shader.setInt(name, i);
-        // bind the texture
+        std::string uniformName;
+        if (name == "texture_diffuse") {
+            uniformName = "texture_diffuse[" + std::to_string(diffuseNr++) + "]";
+        } else if (name == "texture_specular") {
+            uniformName = "texture_specular[" + std::to_string(specularNr++) + "]";
+        } else if (name == "texture_normal") {
+            uniformName = "texture_normal[" + std::to_string(normalNr++) + "]";
+        } else if (name == "texture_height") {
+            uniformName = "texture_height[" + std::to_string(heightNr++) + "]";
+        } else if (name == "texture_reflection") {
+            uniformName = "texture_reflection[" + std::to_string(reflectionNr++) + "]";
+        }
+
+        // 绑定到对应纹理单元
+        shader.setInt(uniformName, i);
         glBindTexture(GL_TEXTURE_2D, m_textures[i].id);
     }
+    shader.setInt("numDiffuse", diffuseNr - 1);
+    shader.setInt("numReflection", reflectionNr - 1);
+    shader.setInt("numSpecular", specularNr - 1);
+    shader.setInt("numNormal", normalNr - 1);
+    shader.setInt("numHeight", heightNr - 1);
 
     // draw the mesh(all the triangles)
     glBindVertexArray(m_VAO);

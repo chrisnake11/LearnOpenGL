@@ -105,14 +105,14 @@ Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
     std::vector<Texture> reflectionMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_reflection");
     textures.insert(textures.end(), reflectionMaps.begin(), reflectionMaps.end());
 
-    // std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
-    // textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-    //
-    // std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
-    // textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-    //
-    // std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
-    // textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+    std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+    textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+
+    std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
+    textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+
+    std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
+    textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
 
     return Mesh{vertices, indices, textures};
@@ -123,6 +123,7 @@ std::vector<Texture> Model::loadMaterialTextures(const aiMaterial *mat, const ai
     std::vector<Texture> textures;
     // load each texture from materials
     bool m_skit = false;
+
     for (unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
         aiString path; // get texture path
         mat->GetTexture(type, i, &path);
@@ -156,6 +157,7 @@ unsigned int TextureFromFile(const char* path, const std::string& directory, boo
     // flip the texture on y-axis
     unsigned char* data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
     if (!data) {
+        std::cout << "Texture failed to load: " << filename << std::endl;
         std::cout << "ERROR: stbi_load failed: " << path << " reason=" << stbi_failure_reason() << std::endl;
         stbi_image_free(data);
         return texture;
@@ -163,8 +165,14 @@ unsigned int TextureFromFile(const char* path, const std::string& directory, boo
 
     GLenum format;
     if (nrComponents == 1) format = GL_RED;
+    else if (nrComponents == 2) format = GL_RG;
     else if (nrComponents == 3) format = GL_RGB;
     else if (nrComponents == 4) format = GL_RGBA;
+    else {
+        std::cout << "Texture format not supported: " << filename << std::endl;
+        stbi_image_free(data);
+        return texture;
+    }
 
 
     glBindTexture(GL_TEXTURE_2D, texture);

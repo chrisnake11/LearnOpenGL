@@ -70,7 +70,32 @@ Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
             vector.x = mesh->mNormals[i].x;
             vector.y = mesh->mNormals[i].y;
             vector.z = mesh->mNormals[i].z;
-            vertex.normal = vector;
+
+            // 检测是否为球体（顶点距离原点大致相等）
+            float distanceFromOrigin = glm::length(vertex.position);
+            bool isSphere = (distanceFromOrigin > 0.1f); // 避免原点处的顶点
+
+            if (isSphere) {
+                // 对球体使用基于位置的法线
+                glm::vec3 positionNormal = glm::normalize(vertex.position);
+                glm::vec3 originalNormal = glm::normalize(vector);
+
+                // 计算是否接近极点 (|y| 接近 1)
+                float poleProximity = glm::abs(positionNormal.y);
+                float blendFactor = glm::smoothstep(0.85f, 1.0f, poleProximity);
+
+                // 在极点附近更多使用位置法线，其他地方混合
+                vertex.normal = glm::normalize(glm::mix(originalNormal, positionNormal, blendFactor));
+            } else {
+                vertex.normal = glm::normalize(vector);
+            }
+        } else {
+            // 如果没有法线，尝试用位置计算（假设球心在原点）
+            if (glm::length(vertex.position) > 0.001f) {
+                vertex.normal = glm::normalize(vertex.position);
+            } else {
+                vertex.normal = glm::vec3(0.0f, 1.0f, 0.0f);
+            }
         }
 
         // load first set of texture coordinates only
@@ -102,17 +127,17 @@ Mesh Model::processMesh(const aiMesh *mesh, const aiScene *scene) {
     std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
     textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
-    // std::vector<Texture> reflectionMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_reflection");
-    // textures.insert(textures.end(), reflectionMaps.begin(), reflectionMaps.end());
+    std::vector<Texture> reflectionMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_reflection");
+    textures.insert(textures.end(), reflectionMaps.begin(), reflectionMaps.end());
 
     std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
     textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
 
-    // std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
-    // textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-    //
-    // std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
-    // textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+    std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+    textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+
+    std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
+    textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
 
     return Mesh{vertices, indices, textures};
@@ -149,6 +174,7 @@ unsigned int TextureFromFile(const char* path, const std::string& directory, boo
     std::string filename = path;
     filename = directory + "/" + filename;
 
+
     unsigned int texture;
     glGenTextures(1, &texture);
 
@@ -171,8 +197,8 @@ unsigned int TextureFromFile(const char* path, const std::string& directory, boo
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 

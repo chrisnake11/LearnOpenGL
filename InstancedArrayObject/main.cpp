@@ -46,7 +46,7 @@ int main(){
     unsigned int amount = 100000;
     glm::mat4 *modelMatrices = new glm::mat4[amount];
     srand(glfwGetTime()); // 初始化随机种子
-    float radius = 50.0;
+    float radius = 20.0;
     float offset = 2.5f;
     // 修正实例矩阵生成部分
     for(unsigned int i = 0; i < amount; i++)
@@ -106,6 +106,7 @@ int main(){
         const auto currentTime = static_cast<float>(glfwGetTime());
         deltaTime = currentTime - lastFrame;
         lastFrame = currentTime;
+        glm::vec3 lightPos(5.0 * cos(currentTime * 3.14), 5.0f, 5.0f * sin(currentTime * 3.14));
 
         inputProcess(window);
 
@@ -119,12 +120,12 @@ int main(){
         planetShader.setMat4("projection", projection);
         planetShader.setMat4("view", view);
         planetShader.setVec3("viewPos", camera.Position);
-        planetShader.setVec3("lightPos", glm::vec3(1.0f, -1.0f, 0.0f));
+        planetShader.setVec3("lightPos", lightPos);
         rockShader.use();
         rockShader.setMat4("projection", projection);
         rockShader.setMat4("view", view);
         rockShader.setVec3("viewPos", camera.Position);
-        rockShader.setVec3("lightPos", glm::vec3(1.0f, -1.0f, 0.0f));
+        rockShader.setVec3("lightPos", lightPos);
 
         planetShader.use();
         glm::mat4 model(1.0f);  // 初始化为单位矩阵

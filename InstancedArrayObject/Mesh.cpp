@@ -36,9 +36,9 @@ void Mesh::setupMesh() {
 void Mesh::draw(const Shader &shader) const {
     unsigned int diffuseNr = 1;
     unsigned int reflectionNr = 1;
-    // unsigned int specularNr = 1;
-    // unsigned int normalNr = 1;
-    // unsigned int heightNr = 1;
+    unsigned int specularNr = 1;
+    unsigned int normalNr = 1;
+    unsigned int heightNr = 1;
     for(unsigned int i = 0; i < m_textures.size(); i++) {
         glActiveTexture(GL_TEXTURE0 + i); // active proper texture unit before binding
         // retrieve texture number (the N in diffuse_textureN)
@@ -48,12 +48,12 @@ void Mesh::draw(const Shader &shader) const {
             number = std::to_string(diffuseNr++);
         else if (name == "texture_reflection")
             number = std::to_string(reflectionNr++); // only one reflection map
-        // else if (name == "texture_specular")
-        //     number = std::to_string(specularNr++);
-        // else if (name == "texture_normal")
-        //     number = std::to_string(normalNr++);
-        // else if (name == "texture_height")
-        //     number = std::to_string(heightNr++);
+        else if (name == "texture_specular")
+            number = std::to_string(specularNr++);
+        else if (name == "texture_normal")
+            number = std::to_string(normalNr++);
+        else if (name == "texture_height")
+            number = std::to_string(heightNr++);
         // now set the sampler to the correct texture unit
         name += number;
         // set uniform sampler to correct texture unit
