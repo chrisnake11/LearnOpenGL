@@ -2,13 +2,13 @@
 // Created by zyx on 2025/9/11.
 //
 #include "Model.h"
+#include <fstream>
 #include <iostream>
 #include <glm/glm.hpp>
 #include <assimp/postprocess.h>
 #include "stb_image.h"
 #include <glad/glad.h>
 #include <glfw/glfw3.h>
-
 unsigned int TextureFromFile(const char *path, const std::string &directory, bool gamma = false);
 
 Model::Model(const std::string &path, bool gamma) : gammaCorrection(gamma){
@@ -150,34 +150,49 @@ unsigned int TextureFromFile(const char* path, const std::string& directory, boo
     std::string filename = path;
     filename = directory + "/" + filename;
 
-    unsigned int texture;
+    unsigned int texture{0};
     glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
 
     int width{}, height{}, nrComponents{};
-    // flip the texture on y-axis
-    unsigned char* data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
-    if (!data) {
-        std::cout << "Texture failed to load: " << filename << std::endl;
-        std::cout << "ERROR: stbi_load failed: " << path << " reason=" << stbi_failure_reason() << std::endl;
-        stbi_image_free(data);
+
+    const int ret = stbi_info(filename.c_str(), &width, &height, &nrComponents);
+
+    if (ret == 0) {
+        std::cout << "Failed to retrieve image info from file: " << filename << std::endl;
         return texture;
     }
 
-    std::cout << "Texture format" << filename << " width: " << width << " height: " << height << " nrComponent: " << nrComponents << std::endl;
-
-    GLenum format;
-    if (nrComponents == 1) format = GL_RED;
-    else if (nrComponents == 2) format = GL_RG ;
-    else if (nrComponents == 3) format = GL_RGB;
-    else if (nrComponents == 4) format = GL_RGBA;
+    if (nrComponents == 3) {
+        // flip the texture on y-axis
+        unsigned char* data = stbi_load(filename.c_str(), &width, &height, &nrComponents, STBI_rgb);
+        if (!data) {
+            std::cout << "Texture failed to load: " << filename << std::endl;
+            std::cout << "ERROR: stbi_load failed: " << path << " reason=" << stbi_failure_reason() << std::endl;
+            stbi_image_free(data);
+            return texture;
+        }
+        std::cout << "Texture format" << filename << " width: " << width << " height: " << height << " nrComponent: " << nrComponents << std::endl;
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        stbi_image_free(data);
+    }
     else {
-        std::cout << "Texture format not supported: " << std::endl;
+        // flip the texture on y-axis
+        unsigned char* data = stbi_load(filename.c_str(), &width, &height, &nrComponents, STBI_rgb_alpha);
+        if (!data) {
+            std::cout << "Texture failed to load: " << filename << std::endl;
+            std::cout << "ERROR: stbi_load failed: " << path << " reason=" << stbi_failure_reason() << std::endl;
+            stbi_image_free(data);
+            return texture;
+        }
+
+        std::cout << "Texture format" << filename << " width: " << width << " height: " << height << " nrComponent: " << nrComponents << std::endl;
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         stbi_image_free(data);
-        return texture;
     }
 
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -185,6 +200,5 @@ unsigned int TextureFromFile(const char* path, const std::string& directory, boo
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    stbi_image_free(data);
     return texture;
 }

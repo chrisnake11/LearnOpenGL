@@ -19,25 +19,27 @@ uniform int numReflection;
 
 void main()
 {
-    vec3 diffuseColor = vec3(0.0);
-    vec3 specularColor = vec3(0.0);
-    vec3 normalColor = vec3(0.0);
+    vec4 diffuseColor = vec4(0.0);
+    vec4 specularColor = vec4(0.0);
+    vec4 normalColor = vec4(0.0);
 
     // 遍历 diffuse
     for (int i = 0; i < numDiffuse; i++) {
-        diffuseColor += texture(texture_diffuse[i], TexCoords).rgb;
+        diffuseColor += texture(texture_diffuse[i], TexCoords);
+        if(diffuseColor.a < 0.1)
+            discard; // 丢弃透明片元
     }
 
     // 遍历 specular
     for (int i = 0; i < numSpecular; i++) {
-        specularColor += texture(texture_specular[i], TexCoords).rgb;
+        specularColor += texture(texture_specular[i], TexCoords);
     }
 
     // 如果有法线贴图
     if (numNormal > 0) {
-        normalColor = texture(texture_normal[0], TexCoords).rgb;
+        normalColor = texture(texture_normal[0], TexCoords);
     }
 
     // 最简单的合成方式（你可以改成 PBR 或 Blinn-Phong）
-    FragColor = vec4((diffuseColor + 0.3 * specularColor), 1.0);
+    FragColor = diffuseColor + 0.3 * specularColor;
 }

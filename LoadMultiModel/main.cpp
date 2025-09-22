@@ -10,6 +10,7 @@
 #include "Model.h"
 #include "Mesh.h"
 
+
 GLFWwindow* initMainWindow();
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void inputProcess(GLFWwindow* window);
@@ -119,15 +120,15 @@ int main(){
 
     // set up skybox shader
     skyboxShader.use();
-    skyboxShader.setInt("skybox", 16); // 纹理单元2
+    skyboxShader.setInt("skybox", 2); // 纹理单元2
 
     const Model ourModel("./resources/kati.pmx"); // 纹理单元(0, 1)表示diff和reflect
 
     reflectShader.use();
-    reflectShader.setInt("skybox", 16);
+    reflectShader.setInt("skybox", 2);
 
     refractShader.use();
-    refractShader.setInt("skybox", 16);
+    refractShader.setInt("skybox", 2);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -151,30 +152,30 @@ int main(){
         ourShader.setMat4("model", model);
         ourShader.setVec3("viewPos", camera.Position);
         // bind skybox texture to texture unit 2 before model bind other texture
-        glActiveTexture(GL_TEXTURE15);
+        glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
         // draw nanosuit model
         ourModel.draw(ourShader);
 
         // draw another
         reflectShader.use();
-        model = glm::translate(glm::mat4(1.0f), glm::vec3(10.0f, 0.0f, 0.0f));
+        model = glm::translate(glm::mat4(1.0f), glm::vec3(30.0f, 0.0f, 0.0f));
         reflectShader.setMat4("projection", projection);
         reflectShader.setMat4("view", view);
         reflectShader.setMat4("model", model);
         reflectShader.setVec3("viewPos", camera.Position);
-        glActiveTexture(GL_TEXTURE15);
+        glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
         ourModel.draw(reflectShader);
 
         // draw another
         refractShader.use();
-        model = glm::translate(glm::mat4(1.0f), glm::vec3(-10.0f, 0.0f, 0.0f));
+        model = glm::translate(glm::mat4(1.0f), glm::vec3(-30.0f, 0.0f, 0.0f));
         refractShader.setMat4("projection", projection);
         refractShader.setMat4("view", view);
         refractShader.setMat4("model", model);
         refractShader.setVec3("viewPos", camera.Position);
-        glActiveTexture(GL_TEXTURE15);
+        glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
         ourModel.draw(refractShader);
 
@@ -186,7 +187,7 @@ int main(){
         skyboxShader.setMat4("projection", projection);
         // skybox cube
         glBindVertexArray(skyboxVAO);
-        glActiveTexture(GL_TEXTURE15);
+        glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glDepthFunc(GL_LESS);
