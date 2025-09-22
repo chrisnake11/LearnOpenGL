@@ -156,6 +156,7 @@ unsigned int TextureFromFile(const char* path, const std::string& directory, boo
 
     int width{}, height{}, nrComponents{};
 
+    // debug: load info first
     const int ret = stbi_info(filename.c_str(), &width, &height, &nrComponents);
 
     if (ret == 0) {
@@ -177,6 +178,7 @@ unsigned int TextureFromFile(const char* path, const std::string& directory, boo
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         stbi_image_free(data);
     }
+    // debug: 2 component Alpha-Gray image will be loaded as 4 component image
     else {
         // flip the texture on y-axis
         unsigned char* data = stbi_load(filename.c_str(), &width, &height, &nrComponents, STBI_rgb_alpha);
